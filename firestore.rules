@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Test collection for initial connectivity checks
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Multi-tenant business collections
+    match /businesses/{businessId} {
+      allow read, write: if true;
+
+      match /orders/{orderId} {
+        allow read, write: if true;
+      }
+
+      match /products/{productId} {
+        allow read, write: if true;
+      }
+
+      match /stockMovements/{movementId} {
+        allow read, write: if true;
+      }
+
+      match /customers/{customerId} {
+        allow read, write: if true;
+      }
+
+      match /drivers/{driverId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "entities": {
+    "BusinessProfile": {
+      "title": "BusinessProfile",
+      "description": "Commerçant ou entreprise e-commerce utilisant WaselDZ",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "wilaya": { "type": "string" },
+        "commune": { "type": "string" },
+        "address": { "type": "string" },
+        "businessType": { "type": "string" },
+        "currency": { "type": "string" },
+        "defaultDeliveryFee": { "type": "number" },
+        "registeredAt": { "type": "string" }
+      },
+      "required": ["name", "ownerName", "phone", "wilaya"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Bordereau de commande et livraison avec suivi GPS en Algérie",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "trackingNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerAddress": { "type": "string" },
+        "wilaya": { "type": "string" },
+        "commune": { "type": "string" },
+        "subtotal": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "status": { "type": "string" },
+        "driverId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "trackingNumber", "customerName", "customerPhone", "wilaya", "totalAmount", "status"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Article du catalogue avec inventaire et alertes de stock en temps réel",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "sku": { "type": "string" },
+        "price": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "stock": { "type": "number" },
+        "minStockAlert": { "type": "number" },
+        "warehouseLocation": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["id", "name", "sku", "price", "stock", "category"]
+    },
+    "StockMovement": {
+      "title": "StockMovement",
+      "description": "Journal d'audit de traçabilité des entrées et sorties de stock",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "type": { "type": "string", "enum": ["in", "out", "adjustment"] },
+        "quantityDelta": { "type": "number" },
+        "newStock": { "type": "number" },
+        "timestamp": { "type": "string" },
+        "reason": { "type": "string" }
+      },
+      "required": ["id", "productId", "type", "quantityDelta", "newStock", "timestamp"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Fiche client CRM pour commerçant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "wilaya": { "type": "string" },
+        "commune": { "type": "string" },
+        "address": { "type": "string" },
+        "totalOrders": { "type": "number" },
+        "totalSpent": { "type": "number" },
+        "lastOrderDate": { "type": "string" }
+      },
+      "required": ["id", "name", "phone", "wilaya"]
+    },
+    "Driver": {
+      "title": "Driver",
+      "description": "Livreur / Chauffeur affilié à la plateforme",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "vehicleType": { "type": "string" },
+        "plateNumber": { "type": "string" },
+        "status": { "type": "string" },
+        "activeDeliveriesCount": { "type": "number" },
+        "completedDeliveries": { "type": "number" },
+        "rating": { "type": "number" }
+      },
+      "required": ["id", "name", "phone", "status"]
+    }
+  },
+  "firestore": {
+    "/businesses/{businessId}": {
+      "schema": "BusinessProfile",
+      "description": "Profils des commerçants et paramètres de boutique"
+    },
+    "/businesses/{businessId}/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Commandes et bordereaux d'expédition de la boutique"
+    },
+    "/businesses/{businessId}/products/{productId}": {
+      "schema": "Product",
+      "description": "Catalogue de produits et niveaux de stocks réels"
+    },
+    "/businesses/{businessId}/stockMovements/{movementId}": {
+      "schema": "StockMovement",
+      "description": "Journal de traçabilité des flux de marchandises"
+    },
+    "/businesses/{businessId}/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Carnet d'adresses et historique clients"
+    },
+    "/businesses/{businessId}/drivers/{driverId}": {
+      "schema": "Driver",
+      "description": "Flotte de livreurs et statut de disponibilité"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "WaselDZ - Plateforme de Gestion de Livraison",
+  "description": "Plateforme SaaS tout-en-un de gestion des commandes et livraisons pour commerçants et e-commerce en Algérie.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
