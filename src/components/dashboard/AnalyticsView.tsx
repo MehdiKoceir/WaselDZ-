@@ -14,6 +14,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import { formatDZD } from '../../data/algeriaData';
 import { RevenueDeliveryChart } from './RevenueDeliveryChart';
+import { DeliveryAnalytics30DaysWidget } from './DeliveryAnalytics30DaysWidget';
 
 export const AnalyticsView: React.FC = () => {
   const { orders, drivers } = useApp();
@@ -145,6 +146,9 @@ export const AnalyticsView: React.FC = () => {
 
       </div>
  
+      {/* Widget Analytique 30 Jours Recharts (Volume, Taux de succès, Délais moyens) */}
+      <DeliveryAnalytics30DaysWidget />
+
       {/* Daily Revenue and Deliveries Volume Chart (Recharts) */}
       <RevenueDeliveryChart />
 

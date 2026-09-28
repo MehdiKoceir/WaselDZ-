@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Package, 
   CheckCircle2, 
@@ -10,17 +10,22 @@ import {
   Eye, 
   Truck,
   AlertCircle,
-  Printer
+  Printer,
+  Radio,
+  Map
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatDZD, STATUS_LABELS } from '../../data/algeriaData';
+import { RealtimeOrderMapTracking } from './RealtimeOrderMapTracking';
 import { RealtimeTrackingWidget } from './RealtimeTrackingWidget';
 import { RevenueDeliveryChart } from './RevenueDeliveryChart';
+import { DeliveryAnalytics30DaysWidget } from './DeliveryAnalytics30DaysWidget';
 import { StockManagementWidget } from './StockManagementWidget';
 import { OrdersSummaryTable } from './OrdersSummaryTable';
 
 export const OverviewView: React.FC = () => {
   const { orders, drivers, setSelectedOrderId, setSlipOrderId, setIsOrderModalOpen, setDashboardTab } = useApp();
+  const [trackingViewMode, setTrackingViewMode] = useState<'map' | 'radar'>('map');
 
   // Metrics computation
   const totalOrders = orders.length;
@@ -130,8 +135,52 @@ export const OverviewView: React.FC = () => {
         </div>
       </div>
 
-      {/* Real-time Tracking Hub for Packages (Demande Utilisateur) */}
-      <RealtimeTrackingWidget />
+      {/* Real-time Tracking Hub with Firestore Order Map (Demande Utilisateur) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+            <h3 className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight">
+              Surveillance Logistique & Statut des Colis
+            </h3>
+          </div>
+
+          {/* Mode Switcher */}
+          <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl text-xs font-bold">
+            <button
+              onClick={() => setTrackingViewMode('map')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                trackingViewMode === 'map'
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Map className="w-3.5 h-3.5 text-blue-600" />
+              <span>Carte des Colis (Firestore)</span>
+            </button>
+            <button
+              onClick={() => setTrackingViewMode('radar')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                trackingViewMode === 'radar'
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Radio className="w-3.5 h-3.5 text-cyan-600 animate-pulse" />
+              <span>Radar Monocolis</span>
+            </button>
+          </div>
+        </div>
+
+        {trackingViewMode === 'map' ? (
+          <RealtimeOrderMapTracking />
+        ) : (
+          <RealtimeTrackingWidget />
+        )}
+      </div>
+
+      {/* Analytics 30 Jours Recharts Widget (Demande Utilisateur: Volume, Taux de succès, Délais moyens) */}
+      <DeliveryAnalytics30DaysWidget />
 
       {/* Analytics & Performance Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

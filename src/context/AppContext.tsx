@@ -439,6 +439,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     initCloudServices();
+
+    // Abonnement en direct aux commandes Firestore pour synchronisation temps réel
+    const unsubscribeOrders = OrderFirestoreService.subscribeToOrders(
+      (firestoreOrders) => {
+        if (firestoreOrders && firestoreOrders.length > 0) {
+          setOrders(firestoreOrders);
+          setCloudSyncStatus('synced');
+        }
+      },
+      (err) => {
+        console.warn('[AppContext] Écoute en direct Firestore:', err);
+      }
+    );
+
+    return () => {
+      if (unsubscribeOrders) unsubscribeOrders();
+    };
   }, []);
 
   const forceCloudSync = async () => {

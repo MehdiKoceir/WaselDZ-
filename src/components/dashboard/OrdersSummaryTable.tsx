@@ -13,11 +13,13 @@ import {
   Clock, 
   ExternalLink,
   ChevronRight,
-  Phone
+  Phone,
+  FileSpreadsheet
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatDZD, STATUS_LABELS } from '../../data/algeriaData';
 import { OrderStatus } from '../../types';
+import { ExportOrdersModal } from './ExportOrdersModal';
 
 interface OrdersSummaryTableProps {
   maxItems?: number;
@@ -46,6 +48,7 @@ export const OrdersSummaryTable: React.FC<OrdersSummaryTableProps> = ({
   const [activeTab, setActiveTab] = useState<'all' | 'in_progress' | 'delivered'>('all');
   const [selectedWilaya, setSelectedWilaya] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Stats computation
   const totalCount = orders.length;
@@ -215,6 +218,15 @@ export const OrdersSummaryTable: React.FC<OrdersSummaryTableProps> = ({
               <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
               <span>{sortOrder === 'desc' ? 'Plus récentes' : 'Plus anciennes'}</span>
             </button>
+
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-emerald-800 font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              title="Exporter les commandes de cette vue au format CSV comptable"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Export CSV</span>
+            </button>
           </div>
         </div>
       )}
@@ -380,6 +392,15 @@ export const OrdersSummaryTable: React.FC<OrdersSummaryTableProps> = ({
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
+
+      {/* Accounting CSV Export Modal */}
+      <ExportOrdersModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        filteredOrders={filteredOrders}
+        selectedOrders={[]}
+        drivers={drivers}
+      />
     </div>
   );
 };

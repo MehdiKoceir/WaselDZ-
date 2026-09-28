@@ -1,33 +1,171 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Test collection for initial connectivity checks
-    match /test/{docId} {
-      allow read, write: if true;
+
+    // -------------------------------------------------------------
+    // Global Primitives & Hardened Access Control Helpers
+    // -------------------------------------------------------------
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'koceirmehdi@gmail.com' && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
     }
 
-    // Multi-tenant business collections
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAuthorizedBusiness(businessId) {
+      return isSignedIn() && (
+        isAdmin() ||
+        businessId == 'main_enterprise' ||
+        request.auth.uid == businessId
+      );
+    }
+
+    // -------------------------------------------------------------
+    // Entity Schema Validators (Anti-Tampering & Payload Guards)
+    // -------------------------------------------------------------
+    function isValidBusinessProfile(data) {
+      return data.keys().hasAll(['name', 'ownerName', 'phone', 'wilaya']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 150 &&
+             data.ownerName is string && data.ownerName.size() > 0 && data.ownerName.size() <= 150 &&
+             data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 35 &&
+             data.wilaya is string && data.wilaya.size() > 0 && data.wilaya.size() <= 80 &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 120)) &&
+             (!('defaultDeliveryFee' in data) || (data.defaultDeliveryFee is number && data.defaultDeliveryFee >= 0));
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['id', 'trackingNumber', 'customerName', 'customerPhone', 'wilaya', 'totalAmount', 'status']) &&
+             isValidId(data.id) &&
+             data.trackingNumber is string && data.trackingNumber.size() > 0 && data.trackingNumber.size() <= 64 &&
+             data.customerName is string && data.customerName.size() >= 2 && data.customerName.size() <= 120 &&
+             data.customerPhone is string && data.customerPhone.size() >= 8 && data.customerPhone.size() <= 35 &&
+             data.wilaya is string && data.wilaya.size() > 0 && data.wilaya.size() <= 80 &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.status in ['new', 'preparing', 'assigned', 'out_for_delivery', 'delivered', 'returned', 'cancelled'] &&
+             (!('items' in data) || (data.items is list && data.items.size() <= 100)) &&
+             (!('history' in data) || (data.history is list && data.history.size() <= 100)) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000));
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['id', 'name', 'sku', 'price', 'stock', 'category']) &&
+             isValidId(data.id) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 150 &&
+             data.sku is string && data.sku.size() > 0 && data.sku.size() <= 64 &&
+             data.price is number && data.price >= 0 &&
+             data.stock is number && data.stock >= 0 &&
+             data.category is string && data.category.size() <= 100 &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 500));
+    }
+
+    function isValidStockMovement(data) {
+      return data.keys().hasAll(['id', 'productId', 'type', 'quantityDelta', 'newStock', 'timestamp']) &&
+             isValidId(data.id) &&
+             isValidId(data.productId) &&
+             data.type in ['in', 'out', 'adjustment'] &&
+             data.quantityDelta is number &&
+             data.newStock is number && data.newStock >= 0 &&
+             data.timestamp is string && data.timestamp.size() <= 50;
+    }
+
+    function isValidCustomer(data) {
+      return data.keys().hasAll(['id', 'name', 'phone', 'wilaya']) &&
+             isValidId(data.id) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 150 &&
+             data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 35 &&
+             data.wilaya is string && data.wilaya.size() > 0 && data.wilaya.size() <= 80 &&
+             (!('totalOrders' in data) || (data.totalOrders is number && data.totalOrders >= 0)) &&
+             (!('totalSpent' in data) || (data.totalSpent is number && data.totalSpent >= 0));
+    }
+
+    function isValidDriver(data) {
+      return data.keys().hasAll(['id', 'name', 'phone', 'status']) &&
+             isValidId(data.id) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 150 &&
+             data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 35 &&
+             data.status in ['active', 'busy', 'offline'] &&
+             (!('rating' in data) || (data.rating is number && data.rating >= 0 && data.rating <= 5));
+    }
+
+    // -------------------------------------------------------------
+    // Global Safety Net (Default-Deny Catch-All)
+    // -------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------
+    // Health & Connectivity Check Collection
+    // -------------------------------------------------------------
+    match /test/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(docId);
+    }
+
+    // -------------------------------------------------------------
+    // Administrators Registry
+    // -------------------------------------------------------------
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && isValidId(adminId);
+    }
+
+    // -------------------------------------------------------------
+    // Multi-Tenant Business & E-Commerce Data Fortress
+    // -------------------------------------------------------------
     match /businesses/{businessId} {
-      allow read, write: if true;
+      allow get: if isAuthorizedBusiness(businessId);
+      allow list: if isAdmin();
+      allow create: if isAuthorizedBusiness(businessId) && isValidId(businessId) && isValidBusinessProfile(incoming());
+      allow update: if isAuthorizedBusiness(businessId) && isValidId(businessId) && isValidBusinessProfile(incoming());
+      allow delete: if isAdmin();
 
+      // Orders Subcollection (Bordereaux de livraison & transactions)
       match /orders/{orderId} {
-        allow read, write: if true;
+        allow get, list: if isAuthorizedBusiness(businessId);
+        allow create: if isAuthorizedBusiness(businessId) && isValidId(orderId) && isValidOrder(incoming());
+        allow update: if isAuthorizedBusiness(businessId) && isValidId(orderId) && isValidOrder(incoming()) && (isAdmin() || incoming().id == existing().id);
+        allow delete: if isAuthorizedBusiness(businessId) && isValidId(orderId);
       }
 
+      // Products Catalog & Inventory
       match /products/{productId} {
-        allow read, write: if true;
+        allow get, list: if isAuthorizedBusiness(businessId);
+        allow create: if isAuthorizedBusiness(businessId) && isValidId(productId) && isValidProduct(incoming());
+        allow update: if isAuthorizedBusiness(businessId) && isValidId(productId) && isValidProduct(incoming()) && (isAdmin() || incoming().id == existing().id);
+        allow delete: if isAuthorizedBusiness(businessId) && isValidId(productId);
       }
 
+      // Stock Traceability & Audit Logs (Append-Only preferred)
       match /stockMovements/{movementId} {
-        allow read, write: if true;
+        allow get, list: if isAuthorizedBusiness(businessId);
+        allow create: if isAuthorizedBusiness(businessId) && isValidId(movementId) && isValidStockMovement(incoming());
+        allow update: if isAdmin() && isValidStockMovement(incoming());
+        allow delete: if isAdmin();
       }
 
+      // Customers CRM (Algerian PII Protected)
       match /customers/{customerId} {
-        allow read, write: if true;
+        allow get, list: if isAuthorizedBusiness(businessId);
+        allow create: if isAuthorizedBusiness(businessId) && isValidId(customerId) && isValidCustomer(incoming());
+        allow update: if isAuthorizedBusiness(businessId) && isValidId(customerId) && isValidCustomer(incoming()) && (isAdmin() || incoming().id == existing().id);
+        allow delete: if isAuthorizedBusiness(businessId) && isValidId(customerId);
       }
 
+      // Delivery Drivers Fleet
       match /drivers/{driverId} {
-        allow read, write: if true;
+        allow get, list: if isAuthorizedBusiness(businessId);
+        allow create: if isAuthorizedBusiness(businessId) && isValidId(driverId) && isValidDriver(incoming());
+        allow update: if isAuthorizedBusiness(businessId) && isValidId(driverId) && isValidDriver(incoming()) && (isAdmin() || incoming().id == existing().id);
+        allow delete: if isAuthorizedBusiness(businessId) && isValidId(driverId);
       }
     }
   }

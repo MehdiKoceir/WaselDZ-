@@ -23,11 +23,13 @@ import {
   Phone,
   SlidersHorizontal,
   Radio,
-  PlayCircle
+  PlayCircle,
+  FileSpreadsheet
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { formatDZD, STATUS_LABELS } from '../../data/algeriaData';
 import { OrderStatus } from '../../types';
+import { ExportOrdersModal } from './ExportOrdersModal';
 
 export const OrdersView: React.FC = () => {
   const { 
@@ -59,6 +61,11 @@ export const OrdersView: React.FC = () => {
   // Batch selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [batchDriverId, setBatchDriverId] = useState<string>('');
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  const selectedOrders = useMemo(() => {
+    return orders.filter(o => selectedIds.includes(o.id));
+  }, [orders, selectedIds]);
 
   // Keyboard shortcut '/' to search
   useEffect(() => {
@@ -237,12 +244,13 @@ export const OrdersView: React.FC = () => {
           </button>
 
           <button
-            onClick={exportToCSV}
-            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
-            title="Exporter les commandes au format CSV"
+            onClick={() => setIsExportModalOpen(true)}
+            className="px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs border border-emerald-200/80"
+            title="Exporter les commandes au format CSV pour la comptabilité (compatible Excel & tableurs)"
           >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Exporter CSV</span>
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span className="hidden sm:inline">Exporter CSV Compta</span>
+            <span className="sm:hidden">Export CSV</span>
           </button>
 
           <button
@@ -469,6 +477,16 @@ export const OrdersView: React.FC = () => {
                 Appliquer
               </button>
             </div>
+
+            {/* Batch CSV Export */}
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="px-2.5 py-1.5 bg-emerald-900/90 hover:bg-emerald-800 text-emerald-200 text-xs font-bold rounded-lg border border-emerald-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Exporter les commandes sélectionnées au format CSV comptable"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Exporter CSV ({selectedIds.length})</span>
+            </button>
 
             {/* Batch delete */}
             <button
@@ -722,6 +740,15 @@ export const OrdersView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Export CSV Accounting Modal */}
+      <ExportOrdersModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        filteredOrders={filteredOrders}
+        selectedOrders={selectedOrders}
+        drivers={drivers}
+      />
 
     </div>
   );
