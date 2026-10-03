@@ -211,7 +211,7 @@ export class OrderFirestoreService {
         onOrdersUpdated(orders);
       },
       (error) => {
-        console.error('[OrderFirestoreService] Erreur d\'écoute en direct Firestore:', error);
+        console.warn('[OrderFirestoreService] Écoute en direct Firestore:', error.message || error);
         if (onError) onError(error);
       }
     );

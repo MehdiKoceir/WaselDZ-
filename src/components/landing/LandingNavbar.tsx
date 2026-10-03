@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { Truck, ArrowRight, Menu, X, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Menu, X, ArrowUpRight } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const LandingNavbar: React.FC = () => {
   const { setCurrentView, loginDemo } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const scrollToSection = (id: string) => {
+  const scrollTo = (id: string) => {
     setMobileMenuOpen(false);
+    if (id === 'top') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -15,106 +19,88 @@ export const LandingNavbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           
-          {/* Logo */}
+          {/* Zone 1: Single Brand Wordmark (High-end freight identity) */}
           <div 
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center gap-3 cursor-pointer group"
+            onClick={() => scrollTo('top')}
+            className="flex items-center gap-3 cursor-pointer select-none group"
           >
-            <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <Truck className="w-6 h-6" />
+            <div className="w-8 h-8 rounded-md bg-slate-900 flex items-center justify-center text-white font-mono font-bold text-xs tracking-wider transition-colors group-hover:bg-blue-900">
+              DZ
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-2xl tracking-tight text-slate-900">
-                  Wasel<span className="text-blue-600">DZ</span>
-                </span>
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  🇩🇿 Algérie
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 font-medium -mt-0.5">
-                Chaque livraison sous contrôle
-              </p>
+            <div className="flex flex-col">
+              <span className="font-extrabold text-base tracking-tight text-slate-900 leading-none">
+                Wasel<span className="text-slate-500 font-medium">Logistics</span>
+              </span>
+              <span className="text-[10px] font-mono text-slate-400 tracking-wider uppercase mt-0.5">
+                58 Wilayas Distribution
+              </span>
             </div>
           </div>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+          {/* Zone 2: 4 Clean Nav Links with subtle underline hover */}
+          <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-600">
             <button 
-              onClick={() => scrollToSection('features')}
-              className="hover:text-blue-600 transition-colors cursor-pointer"
+              onClick={() => scrollTo('top')}
+              className="hover:text-slate-900 transition-colors cursor-pointer tracking-wide"
             >
-              Fonctionnalités
+              Suivi d'expédition
             </button>
             <button 
-              onClick={() => scrollToSection('how-it-works')}
-              className="hover:text-blue-600 transition-colors cursor-pointer"
+              onClick={() => scrollTo('services')}
+              className="hover:text-slate-900 transition-colors cursor-pointer tracking-wide"
             >
-              Comment ça marche
+              Solutions Entreprise
             </button>
             <button 
-              onClick={() => scrollToSection('business-types')}
-              className="hover:text-blue-600 transition-colors cursor-pointer"
+              onClick={() => scrollTo('rates')}
+              className="hover:text-slate-900 transition-colors cursor-pointer tracking-wide"
             >
-              Pour qui ?
+              Barème 58 Wilayas
             </button>
             <button 
-              onClick={() => scrollToSection('pricing')}
-              className="hover:text-blue-600 transition-colors cursor-pointer"
+              onClick={() => scrollTo('contact')}
+              className="hover:text-slate-900 transition-colors cursor-pointer tracking-wide"
             >
-              Tarifs
-            </button>
-            <button 
-              onClick={() => scrollToSection('faq')}
-              className="hover:text-blue-600 transition-colors cursor-pointer"
-            >
-              FAQ
+              Support Opérationnel
             </button>
           </nav>
 
-          {/* Desktop CTA Buttons */}
+          {/* Zone 3: Executive Pro Actions */}
           <div className="hidden md:flex items-center gap-3">
             <button
-              onClick={() => setCurrentView('signin')}
-              className="px-4 py-2.5 text-sm font-semibold text-slate-700 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-            >
-              Se connecter
-            </button>
-            <button
               onClick={loginDemo}
-              className="px-4 py-2.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
-              title="Tester directement l'espace commerçant avec données démo"
+              className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-md border border-slate-300 transition-all cursor-pointer whitespace-nowrap"
             >
-              <ShieldCheck className="w-4 h-4 text-blue-600" />
-              Accès Démo Direct
+              Tester Démo Marchand
             </button>
+
             <button
-              onClick={() => setCurrentView('signup')}
-              className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/30 rounded-lg transition-all flex items-center gap-2 cursor-pointer hover:shadow-md"
+              onClick={() => setCurrentView('signin')}
+              className="px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shadow-xs"
             >
-              <span>Démarrer</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Espace Client / Pro</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Mobile menu trigger */}
+          {/* Mobile menu toggle */}
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={loginDemo}
-              className="px-2.5 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-md"
+              className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 rounded-md border border-slate-200"
             >
               Démo
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 focus:outline-none"
-              aria-label="Toggle menu"
+              className="p-1.5 text-slate-700 hover:text-slate-900 rounded-md hover:bg-slate-100"
+              aria-label="Menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
@@ -123,50 +109,43 @@ export const LandingNavbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-6 space-y-3 shadow-xl animate-in slide-in-from-top-2">
+        <div className="md:hidden border-b border-slate-200 bg-white px-4 pt-3 pb-5 space-y-2 shadow-lg">
           <button 
-            onClick={() => scrollToSection('features')}
-            className="block w-full text-left py-2 text-base font-medium text-slate-700 hover:text-blue-600"
+            onClick={() => scrollTo('top')}
+            className="block w-full text-left py-2 text-xs font-semibold text-slate-700 hover:text-slate-900"
           >
-            Fonctionnalités
+            Suivi d'expédition
           </button>
           <button 
-            onClick={() => scrollToSection('how-it-works')}
-            className="block w-full text-left py-2 text-base font-medium text-slate-700 hover:text-blue-600"
+            onClick={() => scrollTo('services')}
+            className="block w-full text-left py-2 text-xs font-semibold text-slate-700 hover:text-slate-900"
           >
-            Comment ça marche
+            Solutions Entreprise
           </button>
           <button 
-            onClick={() => scrollToSection('business-types')}
-            className="block w-full text-left py-2 text-base font-medium text-slate-700 hover:text-blue-600"
+            onClick={() => scrollTo('rates')}
+            className="block w-full text-left py-2 text-xs font-semibold text-slate-700 hover:text-slate-900"
           >
-            Pour les commerces
+            Barème 58 Wilayas
           </button>
           <button 
-            onClick={() => scrollToSection('pricing')}
-            className="block w-full text-left py-2 text-base font-medium text-slate-700 hover:text-blue-600"
+            onClick={() => scrollTo('contact')}
+            className="block w-full text-left py-2 text-xs font-semibold text-slate-700 hover:text-slate-900"
           >
-            Tarifs (DZD)
+            Support Opérationnel
           </button>
-          <button 
-            onClick={() => scrollToSection('faq')}
-            className="block w-full text-left py-2 text-base font-medium text-slate-700 hover:text-blue-600"
-          >
-            FAQ
-          </button>
-          <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+          <div className="pt-3 border-t border-slate-100 flex gap-2">
             <button
-              onClick={() => { setMobileMenuOpen(false); setCurrentView('signin'); }}
-              className="w-full py-2.5 text-center text-sm font-semibold text-slate-700 bg-slate-100 rounded-lg"
+              onClick={loginDemo}
+              className="flex-1 py-2 text-center text-xs font-semibold text-slate-700 bg-slate-100 rounded-md border border-slate-200"
             >
-              Se connecter
+              Tester Démo
             </button>
             <button
-              onClick={() => { setMobileMenuOpen(false); setCurrentView('signup'); }}
-              className="w-full py-2.5 text-center text-sm font-semibold text-white bg-blue-600 rounded-lg flex items-center justify-center gap-2"
+              onClick={() => { setMobileMenuOpen(false); setCurrentView('signin'); }}
+              className="flex-1 py-2 text-center text-xs font-semibold text-white bg-slate-900 rounded-md"
             >
-              <span>Créer mon compte</span>
-              <ArrowRight className="w-4 h-4" />
+              Connexion Pro
             </button>
           </div>
         </div>
